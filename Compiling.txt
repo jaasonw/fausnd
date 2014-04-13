@@ -1,0 +1,2 @@
+Faucet Audio depends on SDL2 and SDL2-mixer. Make sure they're installed, and
+pass the appropriate flags to your compiler.
