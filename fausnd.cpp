@@ -5,8 +5,8 @@
 #include <SDL2/SDL_mixer.h>
 #undef main
 
-#define DEBUG 0
-
+#define DEBUG 1
+#define DLLEXPORT extern "C" __declspec(dllexport)
 
 struct sample
 {
@@ -31,7 +31,7 @@ int channel_count = 16;
 std::vector<bool> channels_used;
 
 
-int faudio_init()
+double faudio_init()
 {
     // start SDL with audio support
     if(SDL_Init(SDL_INIT_AUDIO) != 0)
@@ -39,7 +39,7 @@ int faudio_init()
         std::cout << "Could not initialize SDL: " << SDL_GetError() << std::endl;
         return -1;
     }
-    
+
     // open 44.1KHz, signed 16bit, system byte order,
     //      stereo audio, using 1024 byte chunks
     if(Mix_OpenAudio(44100, AUDIO_S16, 2, 1024) != 0)
@@ -57,7 +57,7 @@ int faudio_init()
     #endif
     Mix_AllocateChannels(channel_count);
     channels_used.resize(channel_count, false);
-    
+
     return 0;
 }
 
@@ -65,14 +65,14 @@ int faudio_init()
 int faudio_new_sample(const char * fnamestr)
 {
     auto mine = new sample;
-    
+
     // here: set bottom free sample according to sorted search
     //
-    
+
     mine->id = bottom_free_sample;
     mine->ptr = Mix_LoadWAV(fnamestr);
-    
-    
+
+
     // sorted insert mine into samples
     unsigned index;
     for (index = 0; index < samples.size(); ++index)
@@ -85,7 +85,7 @@ int faudio_new_sample(const char * fnamestr)
     }
     if (index >= samples.size())
         samples.push_back(mine);
-    
+
     if(!mine->ptr)
     {
         std::cout << "Could not open file: " << Mix_GetError() << std::endl;
@@ -108,7 +108,7 @@ int faudio_kill_sample(int sid)
             Mix_FreeChunk(samples[index]->ptr);
             auto d = samples[index];
             samples.erase(samples.begin()+index);
-            
+
             free(d);
             return 0;
         }
@@ -124,7 +124,7 @@ int faudio_new_generator(int sid)
     generators.push_back(mine);
     mine->id = bottom_free_generator;
     mine->channel = bottom_free_channel;
-    
+
     bool valid = false;
     // check the given sample for validity
     for (unsigned index = 0; index < samples.size(); ++index)
@@ -142,7 +142,7 @@ int faudio_new_generator(int sid)
         delete mine;
         return -1;
     }
-    
+
     // allocate a channel for our generator if we need it
     while(bottom_free_channel > channel_count)
     {
@@ -168,7 +168,7 @@ int faudio_new_generator(int sid)
         std::cout << "Bottom free: " << bottom_free_channel << " gen: " << bottom_free_generator << " size: " << channels_used.size() << std::endl;
     }
     channels_used[bottom_free_channel] = true;
-    
+
     for (unsigned i = bottom_free_channel + 1; i < channels_used.size(); ++i)
     {
         if(!channels_used[i])
@@ -178,15 +178,15 @@ int faudio_new_generator(int sid)
         }
     }
     // TODO: figure out new lowest channel
-    
+
     bottom_free_generator += 1;
-    
+
     return mine->id;
 }
 
 int faudio_fire_generator(int gid)
 {
-    
+
     for (unsigned index = 0; index < generators.size(); ++index)
     {
         if(generators[index]->id == gid)
@@ -200,7 +200,7 @@ int faudio_fire_generator(int gid)
 
 int faudio_loop_generator(int gid)
 {
-    
+
     for (unsigned index = 0; index < generators.size(); ++index)
     {
         if(generators[index]->id == gid)
@@ -213,7 +213,7 @@ int faudio_loop_generator(int gid)
 }
 int faudio_stop_generator(int gid)
 {
-    
+
     for (unsigned index = 0; index < generators.size(); ++index)
     {
         if(generators[index]->id == gid)
@@ -228,7 +228,7 @@ int faudio_stop_generator(int gid)
 
 int faudio_volume_generator(int gid, double amp)
 {
-    
+
     for (unsigned index = 0; index < generators.size(); ++index)
     {
         if(generators[index]->id == gid)
@@ -242,7 +242,7 @@ int faudio_volume_generator(int gid, double amp)
 
 int faudio_volumes_generator(int gid, double ampl , double ampr)
 {
-    
+
     for (unsigned index = 0; index < generators.size(); ++index)
     {
         if(generators[index]->id == gid)
@@ -266,7 +266,7 @@ int faudio_pan_generator(int gid, double pan) // 0 = center; -1 = left; 1 = righ
                 Mix_SetPanning(generators[index]->channel, 127 - int(pan*128.0), 127 + int(pan*127.0));
             else
                 Mix_SetPanning(generators[index]->channel, 127 - int(pan*127.0), 127 + int(pan*127.0));
-            
+
             #if DEBUG
             std::cout << "PANNED " << pan << std::endl;
             #endif
@@ -299,12 +299,12 @@ int faudio_kill_generator(int gid)
         if(generators[index]->id == gid)
         {
             bottom_free_channel = bottom_free_channel < generators[index]->channel ? bottom_free_channel : generators[index]->channel;
-            
+
             channels_used[generators[index]->channel] = false;
-            
+
             auto d = generators[index];
             generators.erase(generators.begin()+index);
-            
+
             free(d);
             return 0;
         }
@@ -316,18 +316,25 @@ int faudio_kill_generator(int gid)
 int main()
 {
     faudio_init();
-    
+
     auto smp = faudio_new_sample("test.wav");
-    
+
     // make a shitload of generators to test allocation
     int gens[10000];
     for(int i = 0; i < 10000; i++)
         gens[i] = faudio_new_generator(smp);
-    
-    // play a long sound to make sure sdl_mixer is stable
     faudio_fire_generator(gens[1]);
-    while(faudio_get_generator_playing(gens[1]))
-        SDL_Delay(100);
-    
+    faudio_volume_generator(gens[1], 1.0);
+    // play a long sound to make sure sdl_mixer is stable
+    //faudio_fire_generator(gens[2]);
+    double sinWave = 0;
+    while(faudio_get_generator_playing(gens[1])) {
+        sinWave += 0.01;
+        faudio_volume_generator(gens[1], sin(sinWave));
+        SDL_Delay(16.7);
+
+    }
+
+
     return 0;
 }
