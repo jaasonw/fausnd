@@ -143,8 +143,13 @@ int faudio_new_generator(int sid)
         return -1;
     }
     
-    // allocate a channel for our generator if we need it
-    while(bottom_free_channel > channel_count)
+    // reserve a mixer channel for our generator
+    if(channels_used[bottom_free_channel])
+        std::cout << "ERROR -- advance channel reservation not working! -- Generator" << mine->id << " Channel " << bottom_free_channel << "\n";
+    channels_used[bottom_free_channel] = true;
+    
+    // expand mixer channel count if needed
+    while(bottom_free_channel+1 >= channel_count)
     {
         channel_count *= 2;
         Mix_AllocateChannels(channel_count);
@@ -167,8 +172,8 @@ int faudio_new_generator(int sid)
         #endif
         std::cout << "Bottom free: " << bottom_free_channel << " gen: " << bottom_free_generator << " size: " << channels_used.size() << std::endl;
     }
-    channels_used[bottom_free_channel] = true;
     
+    // set which mixer channel to reserve in advance
     for (unsigned i = bottom_free_channel + 1; i < channels_used.size(); ++i)
     {
         if(!channels_used[i])
@@ -177,7 +182,6 @@ int faudio_new_generator(int sid)
             break;
         }
     }
-    // TODO: figure out new lowest channel
     
     bottom_free_generator += 1;
     
