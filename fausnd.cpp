@@ -291,6 +291,20 @@ DLLEXPORT double faudio_get_generator_playing(double gid)
     return -1; // no such generator
 }
 
+DLLEXPORT double faudio_get_generator_volume(double gid)
+{
+    for (unsigned index = 0; index < generators.size(); ++index)
+    {
+        if(doubleComparison(generators[index]->id, gid))
+        {
+            //When volume is set to -1, then it returns the current volume of channel
+            double volume = (double)Mix_Volume(generators[index]->channel, -1) / MIX_MAX_VOLUME;
+            return volume;
+        }
+    }
+    return -1; // no such generator
+}
+
 
 DLLEXPORT double faudio_kill_generator(double gid)
 {
@@ -320,13 +334,14 @@ int main()
 {
     faudio_init();
     std::cout << "hello" << std::endl;
-    auto smp = faudio_new_sample("test.wav");
+    auto smp = faudio_new_sample("C:/Users/mlin4_000/fausnd/test.wav");
 
     // make a shitload of generators to test allocation
     int gens[10000];
     for(int i = 0; i < 10000; i++)
         gens[i] = faudio_new_generator(smp);
     faudio_volume_generator(gens[1], 0.5);
+    std::cout <<"volume:" << faudio_get_generator_volume(gens[1]) << std::endl;
     faudio_pan_generator(gens[1], 0.3);
     faudio_pan_generator(gens[2], -0.3);
     faudio_fire_generator(gens[1]);
