@@ -1,5 +1,6 @@
 fausnd.exe
 compile.sh
+compile-dll.sh
 SDL2.dll
 SDL2_mixer.dll
 fausnd/bin

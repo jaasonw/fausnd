@@ -7,11 +7,11 @@
 
 #define DEBUG 1
 #define DLLEXPORT extern "C" __declspec(dllexport)
-
+#define EPSILON std::numeric_limits<double>::epsilon()
 struct sample
 {
     Mix_Chunk * ptr;
-    int id; // passed back to GM
+    double id; // passed back to GM
 };
 std::vector<sample*> samples;
 
@@ -19,19 +19,20 @@ struct generator
 {
     sample * sample_ptr;
     int channel; // channel being played back on
-    int id; // passed back to GM
+    double id; // passed back to GM
 };
 std::vector<generator*> generators;
 
-int bottom_free_sample = 0;
+double bottom_free_sample = 0;
 int bottom_free_generator = 0;
 int bottom_free_channel = 0;
 
 int channel_count = 16;
 std::vector<bool> channels_used;
 
+bool doubleComparison(double a, double b);
 
-double faudio_init()
+DLLEXPORT double faudio_init()
 {
     // start SDL with audio support
     if(SDL_Init(SDL_INIT_AUDIO) != 0)
@@ -62,7 +63,7 @@ double faudio_init()
 }
 
 
-int faudio_new_sample(const char * fnamestr)
+DLLEXPORT double faudio_new_sample(const char * fnamestr)
 {
     auto mine = new sample;
 
@@ -99,11 +100,11 @@ int faudio_new_sample(const char * fnamestr)
 }
 
 
-int faudio_kill_sample(int sid)
+DLLEXPORT double faudio_kill_sample(double sid)
 {
     for (unsigned index = 0; index < samples.size(); ++index)
     {
-        if(samples[index]->id == sid)
+        if(doubleComparison(samples[index]->id, sid))
         {
             Mix_FreeChunk(samples[index]->ptr);
             auto d = samples[index];
@@ -117,7 +118,7 @@ int faudio_kill_sample(int sid)
 }
 
 
-int faudio_new_generator(int sid)
+DLLEXPORT double faudio_new_generator(double sid)
 {
     // allocate a new generator
     auto mine = new generator;
@@ -129,7 +130,7 @@ int faudio_new_generator(int sid)
     // check the given sample for validity
     for (unsigned index = 0; index < samples.size(); ++index)
     {
-        if(samples[index]->id == sid)
+        if(doubleComparison(samples[index]->id, sid))
         {
             valid = true;
             mine->sample_ptr = samples[index];
@@ -146,7 +147,7 @@ int faudio_new_generator(int sid)
     if(channels_used[bottom_free_channel])
         std::cout << "ERROR -- advance channel reservation not working! -- Generator" << mine->id << " Channel " << bottom_free_channel << "\n";
     channels_used[bottom_free_channel] = true;
-    
+
     // expand mixer channel count if needed
     while(bottom_free_channel+1 >= channel_count)
     {
@@ -172,7 +173,7 @@ int faudio_new_generator(int sid)
         std::cout << "Bottom free: " << bottom_free_channel << " gen: " << bottom_free_generator << " size: " << channels_used.size() << std::endl;
     }
     // set which mixer channel to reserve in advance
-    for (unsigned i = bottom_free_channel + 1; i < channels_used.size(); ++i)
+    for (unsigned i = floor(bottom_free_channel) + 1; i < channels_used.size(); ++i)
     {
         if(!channels_used[i])
         {
@@ -180,18 +181,18 @@ int faudio_new_generator(int sid)
             break;
         }
     }
-    
+
     bottom_free_generator += 1;
 
     return mine->id;
 }
 
-int faudio_fire_generator(int gid)
+DLLEXPORT double faudio_fire_generator(double gid)
 {
 
     for (unsigned index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
             Mix_PlayChannelTimed(generators[index]->channel, generators[index]->sample_ptr->ptr, 0, -1);
             return 0;
@@ -200,12 +201,12 @@ int faudio_fire_generator(int gid)
     return -1; // no such generator
 }
 
-int faudio_loop_generator(int gid)
+DLLEXPORT double faudio_loop_generator(double gid)
 {
 
     for (unsigned index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
             Mix_PlayChannelTimed(generators[index]->channel, generators[index]->sample_ptr->ptr, -1, -1);
             return 0;
@@ -213,12 +214,12 @@ int faudio_loop_generator(int gid)
     }
     return -1; // no such generator
 }
-int faudio_stop_generator(int gid)
+DLLEXPORT double faudio_stop_generator(double gid)
 {
 
     for (unsigned index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
             Mix_HaltChannel(generators[index]->channel);
             return 0;
@@ -228,12 +229,12 @@ int faudio_stop_generator(int gid)
 }
 
 
-int faudio_volume_generator(int gid, double amp)
+DLLEXPORT double faudio_volume_generator(double gid, double amp)
 {
 
     for (unsigned index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
             Mix_Volume(generators[index]->channel, int(amp*MIX_MAX_VOLUME));
             return 0;
@@ -242,12 +243,12 @@ int faudio_volume_generator(int gid, double amp)
     return -1; // no such generator
 }
 
-int faudio_volumes_generator(int gid, double ampl , double ampr)
+DLLEXPORT double faudio_volumes_generator(double gid, double ampl , double ampr)
 {
 
     for (unsigned index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
             Mix_SetPanning(generators[index]->channel, int(ampl*MIX_MAX_VOLUME), int(ampr*MIX_MAX_VOLUME));
             return 0;
@@ -256,13 +257,13 @@ int faudio_volumes_generator(int gid, double ampl , double ampr)
     return -1; // no such generator
 }
 
-int faudio_pan_generator(int gid, double pan) // 0 = center; -1 = left; 1 = right -- based on center volume
+DLLEXPORT double faudio_pan_generator(double gid, double pan) // 0 = center; -1 = left; 1 = right -- based on center volume
 {
     for (unsigned index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
-            if(pan == 0.0) // compensate for center-less-ness of (127-x, 127+x) style pan
+            if(doubleComparison(pan, 0.0)) // compensate for center-less-ness of (127-x, 127+x) style pan
                 Mix_SetPanning(generators[index]->channel, 127, 127);
             else if (pan > 0.0)
                 Mix_SetPanning(generators[index]->channel, 127 - int(pan*128.0), 127 + int(pan*127.0));
@@ -281,11 +282,11 @@ int faudio_pan_generator(int gid, double pan) // 0 = center; -1 = left; 1 = righ
 //faudio_get_generator_pan
 //faudio_get_generator_volume
 
-int faudio_get_generator_playing(int gid)
+DLLEXPORT double faudio_get_generator_playing(double gid)
 {
     for (unsigned index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
             return Mix_Playing(generators[index]->channel);
         }
@@ -294,11 +295,11 @@ int faudio_get_generator_playing(int gid)
 }
 
 
-int faudio_kill_generator(int gid)
+DLLEXPORT double faudio_kill_generator(double gid)
 {
     for (size_t index = 0; index < generators.size(); ++index)
     {
-        if(generators[index]->id == gid)
+        if(doubleComparison(generators[index]->id, gid))
         {
             bottom_free_channel = bottom_free_channel < generators[index]->channel ? bottom_free_channel : generators[index]->channel;
 
@@ -313,12 +314,15 @@ int faudio_kill_generator(int gid)
     }
     return -1; // Could not find generator by id
 }
-
+bool doubleComparison(double a, double b)
+{
+    return fabs(a - b) < EPSILON;
+}
 
 int main()
 {
     faudio_init();
-
+    std::cout << "hello" << std::endl;
     auto smp = faudio_new_sample("test.wav");
 
     // make a shitload of generators to test allocation
