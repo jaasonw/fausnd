@@ -88,7 +88,12 @@ Functions
   * Returns -1 if generatorID is invalid.
   * returns 0 if successful.
   
-  
+**real faudio_get_generator_volume (real generatorID)**
+
+  *Returns the generator's current volume.*
+  * Returns -1 if generatorID is invalid.
+  * Returns a value from 0.0 to 1.0 indicating mute to full volume.
+
 **real faudio_get_generator_playing (real generatorID)**
 
   *Returns whether or not the generator is playing.*
