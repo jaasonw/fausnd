@@ -18,16 +18,16 @@ std::vector<sample*> samples;
 struct generator
 {
     sample * sample_ptr;
-    int channel; // channel being played back on
+    unsigned int channel; // channel being played back on
     double id; // passed back to GM
 };
 std::vector<generator*> generators;
 
 double bottom_free_sample = 0;
-int bottom_free_generator = 0;
-int bottom_free_channel = 0;
+unsigned int bottom_free_generator = 0;
+unsigned int bottom_free_channel = 0;
 
-int channel_count = 16;
+unsigned int channel_count = 16;
 std::vector<bool> channels_used;
 
 bool doubleComparison(double a, double b);
@@ -325,6 +325,56 @@ DLLEXPORT double faudio_kill_generator(double gid)
     }
     return -1; // Could not find generator by id
 }
+
+DLLEXPORT double faudio_kill_all_generators()
+{
+    #if DEBUG
+    std::cout << "Size of generators before:  " << generators.size() << std::endl;
+    std::cout << "Size of channels before:  " << channels_used.size() << std::endl;
+    #endif
+    for (int index = generators.size()-1; index >= 0; --index) //Go through the list of generators, and delete each one individually
+    {
+        Mix_HaltChannel(generators[index]->channel);
+        auto d = generators[index];
+        generators.pop_back();
+        free(d);
+    }
+    channel_count = 16;
+    bottom_free_generator = 0;
+    bottom_free_channel = 0;
+    while (channels_used.size() > channel_count){
+        channels_used.pop_back();
+    }
+    //set all elements to false
+    std::fill(channels_used.begin(), channels_used.end(), false);
+    Mix_AllocateChannels(channel_count);
+    #if DEBUG
+    std::cout << "Size of generators after:  " << generators.size() << std::endl;
+    std::cout << "Number of channels used:  " << channels_used.size() << std::endl;
+
+    #endif
+    return 0;
+}
+
+DLLEXPORT double faudio_kill_all_samples()
+{
+    #if DEBUG
+    std::cout << "Size of samples before:  " << samples.size() << std::endl;
+    #endif
+    for (int index = samples.size()-1; index >= 0; --index)
+    {
+        Mix_FreeChunk(samples[index]->ptr);
+        auto d = samples[index];
+        free(d);
+        samples.pop_back();
+    }
+    bottom_free_sample = 0;
+    #if DEBUG
+    std::cout << "Size of samples after:  " << samples.size() << std::endl;
+    #endif
+    return 0;
+}
+
 bool doubleComparison(double a, double b)
 {
     return fabs(a - b) < EPSILON;
@@ -357,7 +407,7 @@ int main()
         SDL_Delay(16.7);
 
     }
-
-
+    faudio_kill_all_generators();
+    faudio_kill_all_samples();
     return 0;
 }
