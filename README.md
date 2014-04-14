@@ -25,72 +25,83 @@ When calling each function, make sure to supply the correct amount of arguments 
 
 Functions
 ---------
-*real faudio_init()*
-  Initializes fausnd.
-  *Returns -1 if SDL failed to initialize
-  *Returns -2 if SDL-Mixer failed to initialize
-  *Returns 0 if initalized Successfully
+**real faudio_init()**
+
+  *Initializes fausnd.*
+  * Returns -1 if SDL failed to initialize
+  * Returns -2 if SDL-Mixer failed to initialize
+  * Returns 0 if initalized Successfully
   
   
-*real faudio_new_sample(string filename)*
-  Creates a new sample.
-  *Returns -1 if unable to read file/file does not exist
-  *Returns 0 otherwise
+**real faudio_new_sample(string filename)**
+
+  *Creates a new sample.*
+  * Returns -1 if unable to read file/file does not exist
+  * Returns 0 otherwise
   
   
-*real faudio_kill_sample(real sampleID)*
-  Frees a sound instance
-  *Returns 1 if unable to find sample instance
-  *Returns 0 if successful
+**real faudio_kill_sample(real sampleID)**
+
+  *Frees a sound instance*
+  * Returns 1 if unable to find sample instance
+  * Returns 0 if successful
   
   
-*real faudio_new_generator(real sampleID)
-  Creates a new Generator. A generator is responsible for manipulating and modifying a sound instance.
-  *Returns -1 if sampleID is invalid
-  *Returns generatorID if successful
+**real faudio_new_generator(real sampleID)**
+
+  *Creates a new Generator. A generator is responsible for manipulating and modifying a sound instance.*
+  * Returns -1 if sampleID is invalid
+  * Returns generatorID if successful
   
   
-*real faudio_fire_generator(real generatorID)
-  Plays the Generator instance. Will stop playing after end of sample.
-  *Returns -1 if generatorID is invalid
-  *Returns 0 if successful.
+**real faudio_fire_generator(real generatorID)**
+
+  *Plays the Generator instance. Will stop playing after end of sample.*
+  * Returns -1 if generatorID is invalid
+  * Returns 0 if successful.
   
   
-*real faudio_loop_generator(real generatorID)
-  Plays a Generator instance that continuously loops through its sample.
-  *Returns -1 if generatorID is invalid.
-  *Returns 0 if successful.
+**real faudio_loop_generator(real generatorID)**
+
+  *Plays a Generator instance that continuously loops through its sample.*
+  * Returns -1 if generatorID is invalid.
+  * Returns 0 if successful.
   
   
-*real faudio_stop_generator(real generatorID)
-  Stops the generator from playing
-  *Returns -1 is generatorID is invalid.
-  *returns 0 if successful.
+**real faudio_stop_generator(real generatorID)**
+
+  *Stops the generator from playing*
+  * Returns -1 is generatorID is invalid.
+  * returns 0 if successful.
   
   
-*real faudio_volume_generator(real generatorID, real volume)
-  Sets the volume of the generator. Volume ranges from 0 (mute) to 1.0 (full volume).
-  *Returns -1 if generatorID is invalid.
-  *returns 0 if successful.
+**real faudio_volume_generator(real generatorID, real volume)**
+
+  *Sets the volume of the generator. Volume ranges from 0 (mute) to 1.0 (full volume).*
+  * Returns -1 if generatorID is invalid.
+  * returns 0 if successful.
   
   
-*real faudio_pan_generator generatorID, real pan)
-  Sets the pan of the generator. pan ranges from -1.0 (left) to 1.0 (right).
-  *Returns -1 if generatorID is invalid.
-  *returns 0 if successful.
+**real faudio_pan_generator generatorID, real pan)**
+
+  *Sets the pan of the generator. pan ranges from -1.0 (left) to 1.0 (right).*
+  * Returns -1 if generatorID is invalid.
+  * returns 0 if successful.
   
   
-*real faudio_get_generator_playing (real generatorID)
-  Returns whether or not the generator is playing.
-  *Returns -1 if generatorID is invalid.
-  *returns 0 if not playing.
-  *returns 1 if playing.
+**real faudio_get_generator_playing (real generatorID)**
+
+  *Returns whether or not the generator is playing.*
+  * Returns -1 if generatorID is invalid.
+  * returns 0 if not playing.
+  * returns 1 if playing.
   
   
-*real faudio_kill_generator(real generatorID)
-  Frees the generator.
-  *returns -1 if generatorID is invalid.
-  *returns 0 if successful.
+**real faudio_kill_generator(real generatorID)**
+
+  *Frees the generator.*
+  * returns -1 if generatorID is invalid.
+  * returns 0 if successful.
   
   
   
