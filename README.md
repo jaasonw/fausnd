@@ -107,7 +107,17 @@ Functions
   *Frees the generator.*
   * returns -1 if generatorID is invalid.
   * returns 0 if successful.
+
+**real faudio_kill_all_generators()**
+
+  *Destroys and deallocates all generators.*
+  * returns 0.
   
+**real faudio_kill_all_samples()**
+
+  *Destroys and deallocates all samples.*
+  * returns 0.
+ 
   
   
 License
