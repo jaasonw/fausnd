@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1397430031 source:c:\users\mlin4_000\fausnd\fausnd.cpp
+	<iostream>
+	<algorithm>
+	<vector>
+	<SDL2/SDL.h>
+	<SDL2/SDL_mixer.h>
+

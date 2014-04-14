@@ -1,2 +1,8 @@
 fausnd.exe
 compile.sh
+SDL2.dll
+SDL2_mixer.dll
+fausnd/bin
+fausnd/obj
+fausnd.depend
+fausnd.o
