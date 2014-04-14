@@ -325,14 +325,19 @@ int main()
     int gens[10000];
     for(int i = 0; i < 10000; i++)
         gens[i] = faudio_new_generator(smp);
+    faudio_volume_generator(gens[1], 0.5);
+    faudio_pan_generator(gens[1], 0.3);
+    faudio_pan_generator(gens[2], -0.3);
     faudio_fire_generator(gens[1]);
-    faudio_volume_generator(gens[1], 1.0);
+    SDL_Delay(15);
+    faudio_fire_generator(gens[2]);
     // play a long sound to make sure sdl_mixer is stable
     //faudio_fire_generator(gens[2]);
     double sinWave = 0;
     while(faudio_get_generator_playing(gens[1])) {
         sinWave += 0.01;
-        faudio_volume_generator(gens[1], sin(sinWave));
+        faudio_volume_generator(gens[1], sin(sinWave)/2+0.5);
+        faudio_volume_generator(gens[2], sin(sinWave)/2+0.5);
         SDL_Delay(16.7);
 
     }
