@@ -279,9 +279,6 @@ DLLEXPORT double faudio_pan_generator(double gid, double pan) // 0 = center; -1 
     return -1; // no such generator
 }
 
-//faudio_get_generator_pan
-//faudio_get_generator_volume
-
 DLLEXPORT double faudio_get_generator_playing(double gid)
 {
     for (unsigned index = 0; index < generators.size(); ++index)

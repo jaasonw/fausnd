@@ -7,3 +7,5 @@ fausnd/bin
 fausnd/obj
 fausnd.depend
 fausnd.o
+*.gex
+*.gb1
