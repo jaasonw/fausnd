@@ -8,6 +8,7 @@
 #define DEBUG 1
 #define DLLEXPORT extern "C" __declspec(dllexport)
 #define EPSILON std::numeric_limits<double>::epsilon()
+
 struct sample
 {
     Mix_Chunk * ptr;

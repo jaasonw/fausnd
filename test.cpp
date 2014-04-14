@@ -5,7 +5,10 @@
 
 int main()
 {
-    auto mydll = SDL_LoadObject("fausnd.dll");
+    std::cout << "Testing console output.\n";
+    
+    void * mydll = SDL_LoadObject("fausnd.dll");
+    std::cout << SDL_GetError();
     
     double (*faudio_init)();
     faudio_init = (double(*)()) SDL_LoadFunction(mydll, "faudio_init");
@@ -26,7 +29,7 @@ int main()
     double (*faudio_get_generator_playing)(double gid);
     faudio_get_generator_playing = (double(*)(double)) SDL_LoadFunction(mydll, "faudio_get_generator_playing");
     std::cout << SDL_GetError();
-        
+    
     
     faudio_init();
     auto smp = faudio_new_sample("test.wav");

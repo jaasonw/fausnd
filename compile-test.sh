@@ -1,1 +1,1 @@
-g++ test.cpp -ggdb -Wall -I /c/mingw/sdl/include -L /c/mingw/sdl/lib -lSDL2 -o test
+g++ -O test.cpp -I /c/mingw/sdl/include -L /c/mingw/sdl/lib -ggdb -Wall -lSDL2 -lkernel32 -mconsole -mwindows -o test
