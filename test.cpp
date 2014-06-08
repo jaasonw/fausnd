@@ -3,7 +3,7 @@
 #include <SDL2/SDL_loadso.h>
 #undef main
 
-int main()
+int main(int argc, char *argv[])
 {
     std::cout << "Testing console output.\n";
     
@@ -32,7 +32,11 @@ int main()
     
     
     faudio_init();
-    auto smp = faudio_new_sample("test.wav");
+    double smp;
+    if(argc == 1)
+        smp = faudio_new_sample("test.wav");
+    else
+        smp = faudio_new_sample(argv[1]);
     auto gen = faudio_new_generator(smp);
     
     faudio_fire_generator(gen);
