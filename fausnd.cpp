@@ -6,9 +6,8 @@
 #undef main
 
 #define DEBUG 1
-#define DLLEXPORT extern "C" __declspec (dllexport)
+#define DLLEXPORT extern "C" __declspec(dllexport)
 #define EPSILON std::numeric_limits<double>::epsilon()
-
 struct sample
 {
     Mix_Chunk * ptr;
@@ -267,7 +266,7 @@ DLLEXPORT double faudio_pan_generator(double gid, double pan) // 0 = center; -1 
             if(doubleComparison(pan, 0.0)) // compensate for center-less-ness of (127-x, 127+x) style pan
                 Mix_SetPanning(generators[index]->channel, 127, 127);
             else if (pan > 0.0)
-                Mix_SetPanning(generators[index]->channel, 127 - int(pan*128.0), 127 + int(pan*127.0));
+                Mix_SetPanning(generators[index]->channel, 127 - int(pan*127.0), 127 + int(pan*127.0));
             else
                 Mix_SetPanning(generators[index]->channel, 127 - int(pan*127.0), 127 + int(pan*127.0));
 
@@ -397,13 +396,13 @@ int main()
     faudio_pan_generator(gens[2], -0.3);
     faudio_fire_generator(gens[1]);
     SDL_Delay(15);
-    faudio_fire_generator(gens[2]);
+    //faudio_fire_generator(gens[2]);
     // play a long sound to make sure sdl_mixer is stable
     //faudio_fire_generator(gens[2]);
     double sinWave = 0;
     while(faudio_get_generator_playing(gens[1])) {
         sinWave += 0.01;
-        faudio_volume_generator(gens[1], sin(sinWave)/2+0.5);
+        faudio_pan_generator(gens[1], sin(sinWave)/2+0.5);
         faudio_volume_generator(gens[2], sin(sinWave)/2+0.5);
         SDL_Delay(16.7);
 
