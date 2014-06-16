@@ -375,6 +375,19 @@ DLLEXPORT double faudio_kill_all_samples()
     return 0;
 }
 
+DLLEXPORT double faudio_shutdown()
+{
+    faudio_kill_all_generators();
+    faudio_kill_all_samples();
+    Mix_CloseAudio();
+    SDL_Quit();
+    return 0;
+}
+DLLEXPORT const char* faudio_get_error()
+{
+    return Mix_GetError();
+}
+
 bool doubleComparison(double a, double b)
 {
     return fabs(a - b) < EPSILON;
@@ -407,7 +420,6 @@ int main()
         SDL_Delay(16.7);
 
     }
-    faudio_kill_all_generators();
-    faudio_kill_all_samples();
+    faudio_shutdown();
     return 0;
 }
