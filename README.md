@@ -90,12 +90,12 @@ Functions
 **real faudio_get_generator_right_volume()**
   *Returns the right volume of the generator*
   *Volume ranges from 0 (mute) to 1.0 (full volume.)*
-  * returns 0 if successful.
+  * returns -1 if generatorID is invalid.
 
 **real faudio_get_generator_left_volume()**
   *Returns the left volume of the generator*
   *Volume ranges from 0 (mute) to 1.0 (full volume.)*
-  * returns 0 if successful.
+  * returns -1 if generatorID is invalid.
  
 **real faudio_set_global_volume(real globalVolume)**
 
@@ -107,7 +107,6 @@ Functions
 
   *Returns current global volume. By default set to 1.*
   *Volume ranges from 0 (mute) to 1.0 (full volume.)*
-  * returns 0 if successful.
   
 **real faudio_pan_generator generatorID, real pan)**
 
