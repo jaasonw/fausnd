@@ -20,8 +20,12 @@ struct generator
     sample * sample_ptr;
     unsigned int channel; // channel being played back on
     double id; // passed back to GM
+    double volume_left; //range from 0 (mute) to 1 (max)
+    double volume_right; //range from 0 (mute) to 1 (max)
 };
 std::vector<generator*> generators;
+
+double global_vol = 1.0;
 
 double bottom_free_sample = 0;
 unsigned int bottom_free_generator = 0;
@@ -143,6 +147,9 @@ DLLEXPORT double faudio_new_generator(double sid)
         delete mine;
         return -1;
     }
+    //set to default volume of maximum
+    mine->volume_left = 1.0;
+    mine->volume_right = 1.0;
     // reserve a mixer channel for our generator
     if(channels_used[bottom_free_channel])
         std::cout << "ERROR -- advance channel reservation not working! -- Generator" << mine->id << " Channel " << bottom_free_channel << "\n";
@@ -236,7 +243,10 @@ DLLEXPORT double faudio_volume_generator(double gid, double amp)
     {
         if(doubleComparison(generators[index]->id, gid))
         {
-            Mix_Volume(generators[index]->channel, int(amp*MIX_MAX_VOLUME));
+            double vol = std::min(1.0, std::max(0.0,amp)); //between 0.0 and 1.0
+            generators[index] ->volume_left = vol;
+            generators[index] ->volume_right = vol;
+            Mix_Volume(generators[index]->channel, int(global_vol*vol*MIX_MAX_VOLUME));
             return 0;
         }
     }
@@ -250,7 +260,11 @@ DLLEXPORT double faudio_volumes_generator(double gid, double ampl , double ampr)
     {
         if(doubleComparison(generators[index]->id, gid))
         {
-            Mix_SetPanning(generators[index]->channel, int(ampl*MIX_MAX_VOLUME), int(ampr*MIX_MAX_VOLUME));
+            double vol_left = std::min(1.0, std::max(0.0,ampl)); //between 0.0 and 1.0
+            double vol_right = std::min(1.0, std::max(0.0,ampr)); //between 0.0 and 1.0
+            generators[index] ->volume_left = vol_left;
+            generators[index] ->volume_right = vol_right;
+            Mix_SetPanning(generators[index]->channel, int(global_vol*vol_left*MIX_MAX_VOLUME), int(global_vol*vol_right*MIX_MAX_VOLUME));
             return 0;
         }
     }
@@ -297,9 +311,34 @@ DLLEXPORT double faudio_get_generator_volume(double gid)
     {
         if(doubleComparison(generators[index]->id, gid))
         {
-            //When volume is set to -1, then it returns the current volume of channel
-            double volume = (double)Mix_Volume(generators[index]->channel, -1) / MIX_MAX_VOLUME;
+            //Return average of the two volumes
+            double volume = (((generators[index]->volume_left + generators[index]->volume_left))/2.0);
             return volume;
+        }
+    }
+    return -1; // no such generator
+}
+
+DLLEXPORT double faudio_get_generator_right_volume(double gid)
+{
+    for (unsigned index = 0; index < generators.size(); ++index)
+    {
+        if(doubleComparison(generators[index]->id, gid))
+        {
+            return generators[index]->volume_right;
+        }
+    }
+    return -1; // no such generator
+}
+
+
+DLLEXPORT double faudio_get_generator_left_volume(double gid)
+{
+    for (unsigned index = 0; index < generators.size(); ++index)
+    {
+        if(doubleComparison(generators[index]->id, gid))
+        {
+            return generators[index]->volume_left;
         }
     }
     return -1; // no such generator
@@ -387,6 +426,25 @@ DLLEXPORT const char* faudio_get_error()
 {
     return Mix_GetError();
 }
+DLLEXPORT double faudio_get_global_volume()
+{
+    return global_vol;
+}
+
+DLLEXPORT double faudio_set_global_volume(double vol)
+{
+    global_vol = vol;
+    for (unsigned index = 0; index < generators.size(); ++index)
+    {
+            if (doubleComparison(generators[index]->volume_left, generators[index]->volume_right)) // currently playing in mono volume
+            {
+                Mix_Volume(generators[index]->channel, int(global_vol*(generators[index]->volume_left)*MIX_MAX_VOLUME));
+            }else{ //playing stereo
+                Mix_SetPanning(generators[index]->channel, int(global_vol*generators[index]->volume_left*MIX_MAX_VOLUME), int(global_vol*generators[index]->volume_right*MIX_MAX_VOLUME));
+            }
+    }
+    return 0;
+}
 
 bool doubleComparison(double a, double b)
 {
@@ -408,6 +466,7 @@ int main()
     faudio_pan_generator(gens[1], 0.3);
     faudio_pan_generator(gens[2], -0.3);
     faudio_fire_generator(gens[1]);
+    faudio_set_global_volume(1);
     SDL_Delay(15);
     //faudio_fire_generator(gens[2]);
     // play a long sound to make sure sdl_mixer is stable
@@ -415,10 +474,9 @@ int main()
     double sinWave = 0;
     while(faudio_get_generator_playing(gens[1])) {
         sinWave += 0.01;
-        faudio_pan_generator(gens[1], sin(sinWave)/2+0.5);
+        faudio_pan_generator(gens[1], sin(sinWave));
         faudio_volume_generator(gens[2], sin(sinWave)/2+0.5);
         SDL_Delay(16.7);
-
     }
     faudio_shutdown();
     return 0;

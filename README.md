@@ -81,6 +81,32 @@ Functions
   * Returns -1 if generatorID is invalid.
   * returns 0 if successful.
   
+**real faudio_volumes_generator(real generatorID, real volumeLeft, real volumeRight)**
+
+  *Sets the volume of the generator based on Stereo . Volume ranges from 0 (mute) to 1.0 (full volume).*
+  * Returns -1 if generatorID is invalid.
+  * returns 0 if successful.
+
+**real faudio_get_generator_right_volume()**
+  *Returns the right volume of the generator*
+  *Volume ranges from 0 (mute) to 1.0 (full volume.)*
+  * returns -1 if generatorID is invalid.
+
+**real faudio_get_generator_left_volume()**
+  *Returns the left volume of the generator*
+  *Volume ranges from 0 (mute) to 1.0 (full volume.)*
+  * returns -1 if generatorID is invalid.
+ 
+**real faudio_set_global_volume(real globalVolume)**
+
+  *Sets the global volume of all sounds. Will change the volume of currently playing sounds*
+  *Volume ranges from 0 (mute) to 1.0 (full volume).*
+  * returns 0 if successful.
+
+**real faudio_get_global_volume()**
+
+  *Returns current global volume. By default set to 1.*
+  *Volume ranges from 0 (mute) to 1.0 (full volume.)*
   
 **real faudio_pan_generator generatorID, real pan)**
 
