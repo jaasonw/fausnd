@@ -414,11 +414,25 @@ DLLEXPORT double faudio_kill_all_samples()
     return 0;
 }
 
-DLLEXPORT double faudio_get_global_volume(){
+DLLEXPORT double faudio_shutdown()
+{
+    faudio_kill_all_generators();
+    faudio_kill_all_samples();
+    Mix_CloseAudio();
+    SDL_Quit();
+    return 0;
+}
+DLLEXPORT const char* faudio_get_error()
+{
+    return Mix_GetError();
+}
+DLLEXPORT double faudio_get_global_volume()
+{
     return global_vol;
 }
 
-DLLEXPORT double faudio_set_global_volume(double vol){
+DLLEXPORT double faudio_set_global_volume(double vol)
+{
     global_vol = vol;
     for (unsigned index = 0; index < generators.size(); ++index)
     {
@@ -464,7 +478,6 @@ int main()
         faudio_volume_generator(gens[2], sin(sinWave)/2+0.5);
         SDL_Delay(16.7);
     }
-    faudio_kill_all_generators();
-    faudio_kill_all_samples();
+    faudio_shutdown();
     return 0;
 }
